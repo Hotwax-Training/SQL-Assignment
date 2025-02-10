@@ -1,0 +1,112 @@
+1. New Customers Acquired in June 2023
+-- Tables required: Party, Party_role, Person, PartyContactMech, Contact_mech, Telecom_number
+SELECT 
+    p.PARTY_ID, 
+    per.FIRST_NAME, 
+    per.LAST_NAME, 
+    cm.INFO_STRING, 
+    tn.CONTACT_NUMBER, 
+    p.CREATED_DATE 
+FROM party p 
+JOIN party_role pr ON p.party_id = pr.party_id
+JOIN person per ON per.party_id = p.party_id 
+JOIN party_contact_mech pcm ON pcm.party_id = p.party_id
+JOIN contact_mech cm ON cm.CONTACT_MECH_ID = pcm.CONTACT_MECH_ID
+JOIN telecom_number tn ON tn.CONTACT_MECH_ID = cm.CONTACT_MECH_ID
+WHERE pr.role_type_id = 'customer' 
+AND CREATED_DATE BETWEEN '2023-05-31' AND '2023-07-01';
+
+
+-- 2. List All Active Physical Products
+-- Tables required: Product, Product_type
+SELECT 
+    product_id, 
+    product_type_id, 
+    internal_name 
+FROM product 
+JOIN product_type pt USING(product_type_id) 
+WHERE IS_PHYSICAL = 'Y';
+
+-- 3. Products Missing NetSuite ID
+-- Tables required: Product, Good_identification
+SELECT 
+    product_id, 
+    internal_name, 
+    product_type_id, 
+    good_identification_type_id  
+FROM product 
+JOIN good_identification USING (product_id) 
+WHERE GOOD_IDENTIFICATION_TYPE_ID = 'ERP_ID' 
+AND ID_VALUE IS NULL;
+
+
+-- 4. Product IDs Across Systems
+-- Tables required: Good_identification
+SELECT * FROM good_identification;
+
+SELECT 
+    product_id, 
+    (CASE WHEN good_identification_type_id = 'SHOPIFY_PROD_ID' THEN ID_VALUE END) AS shopify_id,
+    (CASE WHEN good_identification_type_id = 'HC_GOOD_ID_TYPE' THEN ID_VALUE END) AS hotwax_id,
+    (CASE WHEN good_identification_type_id = 'ERP_ID' THEN ID_VALUE END) AS erp_id
+FROM good_identification
+GROUP BY product_id;
+
+-- 5. Completed Orders in August 2023
+-- Tables required: Product, Order_header, Order_item, Order_history, Facility
+SELECT * FROM product;
+SELECT * FROM order_header;
+SELECT * FROM order_item;
+SELECT * FROM order_history;
+SELECT * FROM facility;
+
+SELECT 
+    p.PRODUCT_ID,
+    p.PRODUCT_TYPE_ID,
+    orh.PRODUCT_STORE_ID,
+    p.INTERNAL_NAME,
+    SUM(o.QUANTITY) AS TOTAL_QUANTITY,
+    f.FACILITY_ID,
+    f.EXTERNAL_ID,
+    f.FACILITY_TYPE_ID,
+    o.ORDER_ID,
+    o.ORDER_ITEM_SEQ_ID,
+    oh.ORDER_HISTORY_ID,
+    oh.SHIP_GROUP_SEQ_ID
+FROM product p 
+LEFT JOIN facility f ON p.FACILITY_ID = f.FACILITY_ID
+JOIN order_item o ON o.product_id = p.product_id
+JOIN order_history oh ON oh.order_id = o.order_id
+JOIN order_header orh ON orh.order_id = o.ORDER_ID
+WHERE orh.STATUS_ID = 'ORDER_COMPLETED' 
+ORDER_DATE between '2023-08-01' AND '2023-08-31' group by order_id;
+
+6. Newly Created Sales Orders and Payment Methods
+--select * from order_header;
+--select * from order_payment_preference;
+
+SELECT 
+      ORDER_ID,
+      GRAND_TOTAL as TOTAL_AMOUNT,
+      external_id as Shopify_Order_ID,
+      payment_method_type_id as payment_method 
+FROM order_header 
+JOIN order_payment_preference using (order_id)
+order by order_date desc;
+
+ 7.Payment Captured but Not Shipped
+ select * from shipment;
+ select * from order_payment_preference;
+ select * from order_shipment;
+ select * from order_header;
+
+select 
+      oh.order_id,
+      oh.status_id as order_status ,
+      opp.STATUS_ID as payment_status,
+      s.status_id as shipment_status
+from order_header oh 
+join order_payment_preference opp on oh.order_id=opp.order_id 
+join order_shipment os on os.ORDER_ID=oh.ORDER_ID
+join shipment s on s.SHIPMENT_ID=os.SHIPMENT_ID 
+where s.status_id is null;
