@@ -110,3 +110,33 @@ join order_payment_preference opp on oh.order_id=opp.order_id
 join order_shipment os on os.ORDER_ID=oh.ORDER_ID
 join shipment s on s.SHIPMENT_ID=os.SHIPMENT_ID 
 where s.status_id is null;
+
+9.Orders Completed Hour
+select  hour(order_Date) AS order_hour,
+    COUNT(order_Id) AS total_orders
+FROM Order_Header
+WHERE status_Id = 'ORDER_COMPLETED'
+group by hour(order_Date)
+order by hour(order_date);
+
+10.BOPIS Orders Revenue (Last Year)
+SELECT 
+    COUNT(oh.order_id) AS total_orders, 
+    SUM(oh.grand_total) AS total_revenue
+FROM order_header oh
+JOIN shipment s ON oh.order_id = s.primary_order_id
+WHERE oh.sales_channel_enum_id = 'WEB_SALES_CHANNEL'
+AND s.shipment_method_type_id = 'STOREPICKUP'
+AND oh.status_id = 'ORDER_COMPLETED' 
+AND OH.ORDER_DATE BETWEEN "2024-01-01" AND "2024-12-31";
+
+11. Canceled Orders (Last Month)
+SELECT 
+    COUNT(oh.order_id) AS total_orders,
+    os.change_reason AS cancelation_reason
+FROM Order_Header oh 
+JOIN order_status os USING(order_id)
+WHERE os.status_id = 'ORDER_CANCELLED'
+AND oh.order_date BETWEEN '2024-12-01' AND '2024-12-31'
+GROUP BY os.change_reason;
+
