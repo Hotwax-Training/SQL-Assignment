@@ -1,7 +1,7 @@
 1. New Customers Acquired in June 2023
 -- Tables required: Party, Party_role, Person, PartyContactMech, Contact_mech, Telecom_number
 SELECT 
-    p.PARTY_ID, 
+    p.PARTY_ID,
     per.FIRST_NAME, 
     per.LAST_NAME, 
     cm.INFO_STRING, 
@@ -111,7 +111,7 @@ join order_shipment os on os.ORDER_ID=oh.ORDER_ID
 join shipment s on s.SHIPMENT_ID=os.SHIPMENT_ID 
 where s.status_id is null;
 
-9.Orders Completed Hour
+8.Orders Completed Hour
 select  hour(order_Date) AS order_hour,
     COUNT(order_Id) AS total_orders
 FROM Order_Header
@@ -119,7 +119,7 @@ WHERE status_Id = 'ORDER_COMPLETED'
 group by hour(order_Date)
 order by hour(order_date);
 
-10.BOPIS Orders Revenue (Last Year)
+9.BOPIS Orders Revenue (Last Year)
 SELECT 
     COUNT(oh.order_id) AS total_orders, 
     SUM(oh.grand_total) AS total_revenue
@@ -130,7 +130,7 @@ AND s.shipment_method_type_id = 'STOREPICKUP'
 AND oh.status_id = 'ORDER_COMPLETED' 
 AND OH.ORDER_DATE BETWEEN "2024-01-01" AND "2024-12-31";
 
-11. Canceled Orders (Last Month)
+10. Canceled Orders (Last Month)
 SELECT 
     COUNT(oh.order_id) AS total_orders,
     os.change_reason AS cancelation_reason
