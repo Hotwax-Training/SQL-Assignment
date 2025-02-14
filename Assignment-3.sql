@@ -143,7 +143,7 @@ select
       pf.product_id,
       f.facility_id,
       f.facility_type_id,
-	    i.quantity_on_hand_total as QOH,
+      i.quantity_on_hand_total as QOH,
       i.available_to_promise_total as ATP
 from product_facility pf
 join facility f on f.FACILITY_ID=pf.FACILITY_ID
