@@ -1,14 +1,14 @@
 -- 1 Completed Sales Orders (Physical Items)
 select * from order_header;
 select 
-	   oh.order_id,
+     oh.order_id,
      oi.ORDER_ITEM_SEQ_ID,
      p.PRODUCT_ID,
      p.PRODUCT_TYPE_ID,
      oh.SALES_CHANNEL_ENUM_ID,
      oh.ORDER_DATE,
      oh.ENTRY_DATE,
-	   oh.STATUS_ID,
+     oh.STATUS_ID,
      os.STATUS_DATETIME,
      oh.ORDER_TYPE_ID,
      oh.PRODUCT_STORE_ID
@@ -110,7 +110,7 @@ select * from party_role;
 
 SELECT 
     p.party_id AS employee_id,
-	  CONCAT(per.first_name, ' ', per.last_name) AS name,
+    CONCAT(per.first_name, ' ', per.last_name) AS name,
     pr.role_type_id,
     p.STATUS_ID,
     f.FACILITY_ID
