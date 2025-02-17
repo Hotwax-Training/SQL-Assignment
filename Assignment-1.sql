@@ -94,7 +94,7 @@ FROM order_header
 JOIN order_payment_preference using (order_id)
 order by order_date desc;
 
- 7.Payment Captured but Not Shipped
+7.Payment Captured but Not Shipped
  select * from shipment;
  select * from order_payment_preference;
  select * from order_shipment;
