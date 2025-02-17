@@ -101,7 +101,21 @@ WHERE ri.order_id IN (
     GROUP BY order_id
     HAVING COUNT(DISTINCT return_id) > 1
 );
+
 -- 7.Store with Most One-Day Shipped Orders (Last Month)
+SELECT
+    F.FACILITY_ID,
+    F.FACILITY_NAME,
+    COUNT(OH.order_id) AS TOTAL_ONE_DAY_SHIP_ORDERS,
+    DATE_FORMAT(NOW() - INTERVAL 1 MONTH, '%Y-%m') AS REPORTING_PERIOD
+FROM Order_Header OH
+JOIN Order_Item OI ON OI.ORDER_ID = OH.ORDER_ID
+JOIN Facility F ON OH.origin_Facility_Id = F.FACILITY_ID
+JOIN Shipment S ON OH.ORDER_ID = S.primary_Order_Id
+WHERE OH.order_date >= DATE_FORMAT(NOW() - INTERVAL 1 MONTH, '%Y-%m-01') 
+AND OH.order_date < DATE_FORMAT(NOW(), '%Y-%m-01') AND S.shipment_Method_Type_Id = 'NEXT_DAY'  
+GROUP BY F.FACILITY_ID,F.FACILITY_NAME
+ORDER BY TOTAL_ONE_DAY_SHIP_ORDERS DESC LIMIT 1;
 
 -- 8 List of Warehouse Pickers
 select * from facility;
@@ -154,11 +168,15 @@ WHERE f.facility_type_id = 'VIRTUAL_FACILITY';
 
 -- 12 Orders Without Picklist
 select * from order_header;
-select * from picklist_bin;
-SELECT 
-    o.order_id,
-    pb.primary_order_id,
-    o.order_date,
-    o.status_id AS order_status
-FROM order_header o
-JOIN picklist_bin pb ON o.order_id = pb.primary_order_id;
+SELECT
+    OH.ORDER_ID,
+    OH.ORDER_DATE,
+    SI.STATUS_ID AS ORDER_STATUS,
+    OH.origin_Facility_Id AS FACILITY_ID,
+    TIMESTAMPDIFF(DAY, OH.ORDER_DATE, CURRENT_TIMESTAMP) AS DURATION
+FROM Order_Header OH
+JOIN Status_Item SI ON OH.status_Id = SI.STATUS_ID
+LEFT JOIN Shipment S ON OH.ORDER_ID = S.primary_Order_Id
+LEFT JOIN Facility F ON S.destination_Facility_Id = F.facility_Id 
+LEFT JOIN PickList P ON F.facility_Id = P.facility_Id 
+WHERE P.facility_Id IS NULL;
