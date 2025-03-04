@@ -15,9 +15,9 @@ SELECT
     p.PARTY_ID,
     per.FIRST_NAME, 
     per.LAST_NAME, 
-    cm.INFO_STRING, 
-    tn.CONTACT_NUMBER, 
-    p.CREATED_DATE 
+    cm.INFO_STRING as EMAIL,
+    tn.CONTACT_NUMBER as PHONE,
+    p.CREATED_DATE as ENTRY_DATE
 FROM party p 
 JOIN party_role pr ON p.party_id = pr.party_id
 JOIN person per ON per.party_id = p.party_id 
@@ -136,8 +136,8 @@ from order_header oh
 join order_payment_preference opp on oh.order_id=opp.order_id 
 join order_shipment os on os.ORDER_ID=oh.ORDER_ID
 join shipment s on s.SHIPMENT_ID=os.SHIPMENT_ID 
-where s.status_id is null;
-
+where s.status_id is null AND opp.status_id='PAYMENT_SETTLED' ;
+#shippment id is nulll
 Query Cost : 3.58
 ---------------------------------------------------------------------------------------------------------------------------------
 
@@ -200,4 +200,5 @@ JOIN order_status os USING(order_id)
 WHERE os.status_id = 'ORDER_CANCELLED'
 AND	oh.order_date >'2024-12-01' AND	oh.order_date <'2024-12-31' 
 GROUP BY os.change_reason;
+
 Query Cost : 22948.63
