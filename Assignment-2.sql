@@ -18,7 +18,8 @@ JOIN person per ON per.party_id = pcm.party_id
 WHERE oh.order_date BETWEEN '2023-10-01' AND '2023-10-31' 
 AND ocm.contact_mech_purpose_type_id = 'SHIPPING_LOCATION'
 AND oh.status_id = 'ORDER_COMPLETED';
-
+24785.35 
+    
 5.2 :Orders from New York
 SELECT 
     oh.order_id,
@@ -39,7 +40,8 @@ WHERE ocm.contact_mech_purpose_type_id = 'SHIPPING_LOCATION'
 AND pa.state_province_geo_id = 'NY' 
 AND pa.city = 'New York'
 AND oh.status_id = 'ORDER_COMPLETED';
-
+8055.33
+    
 5.3 Top-Selling Product in New York
 SELECT
     p.product_id,
@@ -56,6 +58,7 @@ WHERE pa.state_province_geo_id = 'NY'
 AND pa.city = 'New York' 
 AND oh.status_id = 'ORDER_COMPLETED' 
 GROUP BY p.product_id;
+14627.56
 
 7.3 Store-Specific (Facility-Wise) Revenue
 SELECT 
@@ -70,7 +73,8 @@ JOIN order_item_ship_group oisg ON fac.facility_id = oisg.facility_id
 JOIN order_header oh ON oh.order_id = oisg.order_id
 JOIN order_item oi ON oi.order_id = oisg.order_id 
 GROUP BY fac.facility_id;
-
+392256.64
+    
 8.1 Inventory Management & Transfers
 SELECT 
     inv.inventory_item_id,
