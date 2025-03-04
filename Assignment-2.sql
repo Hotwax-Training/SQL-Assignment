@@ -1,4 +1,20 @@
-5.1 Shipping Addresses for October 2023 Orders
+-- 5.1 Shipping Addresses for October 2023 Orders
+-- Business Problem:
+-- Customer Service might need to verify addresses for orders placed or completed in October 2023. This helps ensure shipments are delivered correctly and prevents address-related issues.
+
+-- Fields to Retrieve:
+
+-- ORDER_ID
+-- PARTY_ID (Customer ID)
+-- CUSTOMER_NAME (or FIRST_NAME / LAST_NAME)
+-- STREET_ADDRESS
+-- CITY
+-- STATE_PROVINCE
+-- POSTAL_CODE
+-- COUNTRY_CODE
+-- ORDER_STATUS
+-- ORDER_DATE
+
 SELECT 
     oh.order_id,
     pcm.party_id AS customer_id,
@@ -18,9 +34,26 @@ JOIN person per ON per.party_id = pcm.party_id
 WHERE oh.order_date BETWEEN '2023-10-01' AND '2023-10-31' 
 AND ocm.contact_mech_purpose_type_id = 'SHIPPING_LOCATION'
 AND oh.status_id = 'ORDER_COMPLETED';
-24785.35 
+
+Query Cost : 24785.35 
+---------------------------------------------------------------------------------------------------------------------------------
     
-5.2 :Orders from New York
+  -- 5.2 Orders from New York
+-- Business Problem:
+-- Companies often want region-specific analysis to plan local marketing, staffing, or promotions in certain areas—here, specifically, New York.
+
+-- Fields to Retrieve:
+
+-- ORDER_ID
+-- CUSTOMER_NAME
+-- STREET_ADDRESS (or shipping address detail)
+-- CITY
+-- STATE_PROVINCE
+-- POSTAL_CODE
+-- TOTAL_AMOUNT
+-- ORDER_DATE
+-- ORDER_STATUS
+    
 SELECT 
     oh.order_id,
     CONCAT(per.first_name, ' ', per.last_name) AS customer_name,
@@ -40,9 +73,22 @@ WHERE ocm.contact_mech_purpose_type_id = 'SHIPPING_LOCATION'
 AND pa.state_province_geo_id = 'NY' 
 AND pa.city = 'New York'
 AND oh.status_id = 'ORDER_COMPLETED';
-8055.33
+
+Query Cost : 8055.33
+--------------------------------------------------------------------------------------------------------------------------------
     
-5.3 Top-Selling Product in New York
+-- 5.3 Top-Selling Product in New York
+-- Business Problem:
+-- Merchandising teams need to identify the best-selling product(s) in a specific region (New York) for targeted restocking or promotions.
+
+-- Fields to Retrieve:
+
+-- PRODUCT_ID
+-- INTERNAL_NAME
+-- TOTAL_QUANTITY_SOLD
+-- CITY / STATE (within New York region)
+-- REVENUE (optionally, total sales amount)
+    
 SELECT
     p.product_id,
     p.internal_name,
@@ -58,9 +104,22 @@ WHERE pa.state_province_geo_id = 'NY'
 AND pa.city = 'New York' 
 AND oh.status_id = 'ORDER_COMPLETED' 
 GROUP BY p.product_id;
-14627.56
 
-7.3 Store-Specific (Facility-Wise) Revenue
+Query Cost : 14627.56
+--------------------------------------------------------------------------------------------------------------------------------
+ 
+ -- 7.3 Store-Specific (Facility-Wise) Revenue
+-- Business Problem:
+-- Different physical or online stores (facilities) may have varying levels of performance. The business wants to compare revenue across facilities for sales planning and budgeting.
+
+-- Fields to Retrieve:
+
+-- FACILITY_ID
+-- FACILITY_NAME
+-- TOTAL_ORDERS
+-- TOTAL_REVENUE
+-- DATE_RANGE
+    
 SELECT 
     fac.facility_id,
     fac.facility_name,
@@ -73,9 +132,23 @@ JOIN order_item_ship_group oisg ON fac.facility_id = oisg.facility_id
 JOIN order_header oh ON oh.order_id = oisg.order_id
 JOIN order_item oi ON oi.order_id = oisg.order_id 
 GROUP BY fac.facility_id;
-392256.64
+
+Query Cost : 392256.64
+-------------------------------------------------------------------------------------------------------------------------------------    
+
+-- 8.1 Lost and Damaged Inventory
+-- Business Problem:
+-- Warehouse managers need to track “shrinkage” such as lost or damaged inventory to reconcile physical vs. system counts.
+
+-- Fields to Retrieve:
+
+-- INVENTORY_ITEM_ID
+-- PRODUCT_ID
+-- FACILITY_ID
+-- QUANTITY_LOST_OR_DAMAGED
+-- REASON_CODE (Lost, Damaged, Expired, etc.)
+-- TRANSACTION_DATE
     
-8.1 Inventory Management & Transfers
 SELECT 
     inv.inventory_item_id,
     inv.product_id,
@@ -87,19 +160,22 @@ FROM inventory_item inv
 JOIN inventory_item_detail invd 
     ON inv.inventory_item_id = invd.inventory_item_id
 WHERE invd.reason_enum_id IN ('VAR_LOST', 'VAR_DAMAGED');
-    
-8.2 Low Stock or Out of Stock Items Report
-SELECT 
-    p.product_id,
-    p.product_name,
-    inv.facility_id,
-    inv.quantity_on_hand_total AS QOH,
-    inv.available_to_promise_total AS ATP
-FROM product p 
-JOIN inventory_item inv
-    ON p.product_id = inv.product_id;
 
-8.3 Retrieve the Current Facility (Physical or Virtual) of Open Orders
+Query Cost :
+---------------------------------------------------------------------------------------------------------------------------------
+    
+-- 8.3 Retrieve the Current Facility (Physical or Virtual) of Open Orders
+-- Business Problem:
+-- The business wants to know where open orders are currently assigned, whether in a physical store or a virtual facility (e.g., a distribution center or online fulfillment location).
+
+-- Fields to Retrieve:
+
+-- ORDER_ID
+-- ORDER_STATUS
+-- FACILITY_ID
+-- FACILITY_NAME
+-- FACILITY_TYPE_ID 
+    
 SELECT
     oh.order_id,
     oh.status_id AS order_status,
@@ -109,8 +185,20 @@ SELECT
 FROM facility f
 JOIN order_header oh ON f.facility_id = oh.origin_facility_id
 WHERE oh.status_id IN ('ORDER_APPROVED', 'ORDER_CREATED', 'ORDER_HOLD');
+-----------------------------------------------------------------------------------------------------------------------------------
 
-8.4 Items Where QOH and ATP Differ
+-- 8.4 Items Where QOH and ATP Differ
+-- Business Problem:
+-- Sometimes the Quantity on Hand (QOH) doesn’t match the Available to Promise (ATP) due to pending orders, reservations, or data discrepancies. This needs review for accurate fulfillment planning.
+
+-- Fields to Retrieve:
+
+-- PRODUCT_ID
+-- FACILITY_ID
+-- QOH (Quantity on Hand)
+-- ATP (Available to Promise)
+-- DIFFERENCE (QOH - ATP)
+
 SELECT 
     inv.product_id,
     inv.facility_id,
@@ -119,8 +207,20 @@ SELECT
     (inv.quantity_on_hand_total - inv.available_to_promise_total) AS difference
 FROM inventory_item inv
 WHERE inv.quantity_on_hand_total <> inv.available_to_promise_total;
+-----------------------------------------------------------------------------------------------------------------------------------
 
-8.5 Order Item Current Status Changed Date-Time
+-- 8.5 Order Item Current Status Changed Date-Time
+-- Business Problem:
+-- Operations teams need to audit when an order item’s status (e.g., from “Pending” to “Shipped”) was last changed, for shipment tracking or dispute resolution.
+
+-- Fields to Retrieve:
+
+-- ORDER_ID
+-- ORDER_ITEM_SEQ_ID
+-- CURRENT_STATUS_ID
+-- STATUS_CHANGE_DATETIME
+-- CHANGED_BY
+    
 SELECT 
     oi.order_id,
     oi.order_item_seq_id,
@@ -129,8 +229,19 @@ SELECT
     os.status_user_login AS changed_by
 FROM order_item oi 
 JOIN order_status os ON oi.order_id = os.order_id;
+------------------------------------------------------------------------------------------------------------------------------------
 
-8.6 Total Orders by Sales Channel
+-- 8.6 Total Orders by Sales Channel
+-- Business Problem:
+-- Marketing and sales teams want to see how many orders come from each channel (e.g., web, mobile app, in-store POS, marketplace) to allocate resources effectively.
+
+-- Fields to Retrieve:
+
+-- SALES_CHANNEL
+-- TOTAL_ORDERS
+-- TOTAL_REVENUE
+-- REPORTING_PERIOD
+
 SELECT 
     oh.sales_channel_enum_id AS sales_channel,
     COUNT(DISTINCT oh.order_id) AS total_orders, 
