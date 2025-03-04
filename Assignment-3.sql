@@ -29,10 +29,10 @@ select
      oh.ORDER_TYPE_ID,
      oh.PRODUCT_STORE_ID
 from order_header oh 
-join order_item oi on oh.order_id=oi.ORDER_ID
-join order_status os on os.ORDER_ID=oi.ORDER_ID
-join product p on p.product_id=oi.product_id
-where oh.order_type_id="SALES_ORDER" AND os.status_id="ORDER_COMPLETED";
+join order_item oi on oh.order_id=oi.ORDER_ID AND oh.order_type_id='SALES_ORDER' and oh.status_id = 'ORDER_COMPLETED'
+join order_status os on os.ORDER_ID=oi.ORDER_ID AND oi.order_item_seq_id = os.order_Item_Seq_Id;
+join product p on p.product_id=oi.product_id product p ON oi.product_id = p.product_id 
+AND p.PRODUCT_TYPE_ID not in('DIGITAL_GOOD','DONATION','INSTALLATION_SERVICE','SERVICE');
 
 ---------------------------------------------------------------------------------------------------------------------------------
 
@@ -68,6 +68,7 @@ join return_item ri on rh.return_id=ri.return_id
 join order_header oh on ri.ORDER_ID=oh.order_id
 join order_status os on oh.order_id=os.order_id
 where ri.status_id="RETURN_COMPLETED" AND rh.status_id="RETURN_COMPLETED";
+
 ---------------------------------------------------------------------------------------------------------------------------------
 
 -- 3 Single-Return Orders (Last Month)
@@ -142,6 +143,7 @@ from return_header rh
 left join return_adjustment ra on ra.RETURN_ID=rh.RETURN_ID
 left join return_item ri on ra.ORDER_ID=ri.ORDER_ID 
 join order_header oh on oh.ORDER_ID=ri.order_id;
+
 --------------------------------------------------------------------------------------------------------------------------------
 
 -- 6 Orders with Multiple Returns
@@ -222,6 +224,7 @@ JOIN party_role pr ON p.party_id = pr.party_id
 JOIN person per on per.party_id=p.party_id
 JOIN facility f on f.OWNER_PARTY_ID=p.PARTY_ID
 WHERE pr.role_type_id = 'WAREHOUSE_PICKER' AND f.facility_type_id="WAREHOUSE";
+
 --------------------------------------------------------------------------------------------------------------------------------
 
 -- 9 Total Facilities That Sell the Product
@@ -280,16 +283,13 @@ WHERE f.facility_type_id = 'VIRTUAL_FACILITY';
 -- ORDER_STATUS
 -- FACILITY_ID
 -- DURATION (How long has the order been assigned at the facility)
-select * from order_header;
-SELECT
-    OH.ORDER_ID,
-    OH.ORDER_DATE,
-    SI.STATUS_ID AS ORDER_STATUS,
-    OH.origin_Facility_Id AS FACILITY_ID,
-    TIMESTAMPDIFF(DAY, OH.ORDER_DATE, CURRENT_TIMESTAMP) AS DURATION
-FROM Order_Header OH
-JOIN Status_Item SI ON OH.status_Id = SI.STATUS_ID
-LEFT JOIN Shipment S ON OH.ORDER_ID = S.primary_Order_Id
-LEFT JOIN Facility F ON S.destination_Facility_Id = F.facility_Id 
-LEFT JOIN PickList P ON F.facility_Id = P.facility_Id 
-WHERE P.facility_Id IS NULL;
+
+SELECT 
+    oh.order_id AS ORDER_ID,
+    oh.order_date AS ORDER_DATE,
+    oh.status_id AS ORDER_STATUS,
+    oh.origin_facility_id AS FACILITY_ID,
+    DATEDIFF(CURRENT_DATE, oh.order_date) AS DURATION
+FROM Order_Header oh
+LEFT JOIN PickList_Item pi ON oh.order_id = pi.order_id
+WHERE pi.order_id IS NULL;
