@@ -1,9 +1,16 @@
-1. New Customers Acquired in June 2023
-Business Problem:
-The marketing team ran a campaign in June 2023 and wants to see how many new customers signed up during that period.
-Fields to Retrieve:
---PARTY_ID,FIRST_NAME,LAST_NAME,EMAIL,PHONE,ENTRY_DATE
--- Tables required: Party, Party_role, Person, PartyContactMech, Contact_mech, Telecom_number
+-- 1 New Customers Acquired in June 2023
+-- Business Problem:
+-- The marketing team ran a campaign in June 2023 and wants to see how many new customers signed up during that period.
+
+-- Fields to Retrieve:
+
+-- PARTY_ID
+-- FIRST_NAME
+-- LAST_NAME
+-- EMAIL
+-- PHONE
+-- ENTRY_DATE 
+
 SELECT 
     p.PARTY_ID,
     per.FIRST_NAME, 
@@ -20,9 +27,18 @@ JOIN telecom_number tn ON tn.CONTACT_MECH_ID = cm.CONTACT_MECH_ID
 WHERE pr.ROLE_TYPE_ID = 'CUSTOMER' AND  p.CREATED_DATE >= '2023-06-01' AND  p.CREATED_DATE <'2023-07-01';
 
 Query Cost : 17325.44
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+-- 2 List All Active Physical Products
+-- Business Problem:
+-- Merchandising teams often need a list of all physical products to manage logistics, warehousing, and shipping.
+
+-- Fields to Retrieve:
+
+-- PRODUCT_ID
+-- PRODUCT_TYPE_ID
+-- INTERNAL_NAME
     
-2. List All Active Physical Products
-Tables required: Product, Product_type
 SELECT 
     product_id, 
     product_type_id, 
@@ -32,9 +48,19 @@ JOIN product_type pt on p.product_id=pt.product_id
 WHERE IS_PHYSICAL = 'Y';
 
 Query Cost : 171000.33
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    
+-- 3 Products Missing NetSuite ID
+-- Business Problem:
+-- A product cannot sync to NetSuite unless it has a valid NetSuite ID. The OMS needs a list of all products that still need to be created or updated in NetSuite.
 
--- 3. Products Missing NetSuite ID
--- Tables required: Product, Good_identification
+-- Fields to Retrieve:
+
+-- PRODUCT_ID
+-- INTERNAL_NAME
+-- PRODUCT_TYPE_ID
+-- NETSUITE_ID (or similar field indicating the NetSuite ID; may be NULL or empty if missing)
+    
 SELECT 
     product_id, 
     internal_name, 
@@ -46,9 +72,18 @@ WHERE GOOD_IDENTIFICATION_TYPE_ID = 'ERP_ID'
 AND ID_VALUE IS NULL;
 
 Query Cost : 2.19
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------    
 
--- 4. Product IDs Across Systems
--- Tables required: Good_identification
+-- 4 Product IDs Across Systems
+-- Business Problem:
+-- To sync an order or product across multiple systems (e.g., Shopify, HotWax, ERP/NetSuite), the OMS needs to know each system’s unique identifier for that product. This query retrieves the Shopify ID, HotWax ID, and ERP ID (NetSuite ID) for all products.
+                                                             
+-- Fields to Retrieve:
+
+-- PRODUCT_ID
+-- SHOPIFY_ID  
+-- HOTWAX_ID      
+-- ERP_ID or NETSUITE_ID (depending on naming)
 SELECT 
     product_id, 
     (CASE WHEN good_identification_type_id = 'SHOPIFY_PROD_ID' THEN ID_VALUE END) AS shopify_id,
@@ -58,35 +93,18 @@ FROM good_identification
 GROUP BY product_id;
 
 Query Cost : 252022.31
+-------------------------------------------------------------------------------------------------------------------------------------
+    
+-- 7 Newly Created Sales Orders and Payment Methods
+-- Business Problem:
+-- Finance teams need to see new orders and their payment methods for reconciliation and fraud checks.
 
--- 5. Completed Orders in August 2023
--- Tables required: Product, Order_header, Order_item, Order_history, Facility
+-- Fields to Retrieve:
 
-SELECT 
-    p.PRODUCT_ID,
-    p.PRODUCT_TYPE_ID,
-    orh.PRODUCT_STORE_ID,
-    p.INTERNAL_NAME,
-    SUM(o.QUANTITY) AS TOTAL_QUANTITY,
-    f.FACILITY_ID,
-    f.EXTERNAL_ID,
-    f.FACILITY_TYPE_ID,
-    o.ORDER_ID,
-    o.ORDER_ITEM_SEQ_ID,
-    oh.ORDER_HISTORY_ID,
-    oh.SHIP_GROUP_SEQ_ID
-FROM product p 
-LEFT JOIN facility f ON p.FACILITY_ID = f.FACILITY_ID
-JOIN order_item o ON o.product_id = p.product_id
-JOIN order_history oh ON oh.order_id = o.order_id
-JOIN order_header orh ON orh.order_id = o.ORDER_ID
-WHERE orh.STATUS_ID = 'ORDER_COMPLETED' AND
-ORDER_DATE between '2023-08-01' AND '2023-08-31' group by order_id;
-
-6. Newly Created Sales Orders and Payment Methods
---select * from order_header;
---select * from order_payment_preference;
-
+-- ORDER_ID
+-- TOTAL_AMOUNT
+-- PAYMENT_METHOD
+-- Shopify Order ID (if applicable) //External_id
 SELECT 
       ORDER_ID,
       GRAND_TOTAL as TOTAL_AMOUNT,
@@ -95,9 +113,20 @@ SELECT
 FROM order_header 
 JOIN order_payment_preference using (order_id)
 order by order_date desc;
+
 Query Cost : 60516.37
+----------------------------------------------------------------------------------------------------------------------------------
     
-7.Payment Captured but Not Shipped
+-- 8 Payment Captured but Not Shipped
+-- Business Problem:
+-- Finance teams want to ensure revenue is recognized properly. If payment is captured but no shipment has occurred, it warrants further review.
+
+-- Fields to Retrieve:
+
+-- ORDER_ID
+-- ORDER_STATUS
+-- PAYMENT_STATUS
+-- SHIPMENT_STATUS
 Select 
       oh.order_id,
       oh.status_id as order_status ,
@@ -110,18 +139,37 @@ join shipment s on s.SHIPMENT_ID=os.SHIPMENT_ID
 where s.status_id is null;
 
 Query Cost : 3.58
+---------------------------------------------------------------------------------------------------------------------------------
 
-8.Orders Completed Hour
-select  hour(order_Date) AS order_hour,
+-- 9 Orders Completed Hourly
+-- Business Problem:
+-- Operations teams may want to see how orders complete across the day to schedule staffing.
+
+-- Fields to Retrieve:
+
+-- TOTAL ORDERS
+-- HOUR
+
+select 
     COUNT(order_Id) AS total_orders
+    hour(order_Date) AS order_hour,
 FROM Order_Header
 WHERE status_Id = 'ORDER_COMPLETED'
 group by hour(order_Date)
 order by hour(order_date);
 
-Query Cost : 5644.01
+Query Cost : 5344.01
+-------------------------------------------------------------------------------------------------------------------------------
 
-9.BOPIS Orders Revenue (Last Year)
+-- 10 BOPIS Orders Revenue (Last Year)
+-- Business Problem:
+-- BOPIS (Buy Online, Pickup In Store) is a key retail strategy. Finance wants to know the revenue from BOPIS orders for the previous year.
+
+-- Fields to Retrieve:
+
+-- TOTAL ORDERS
+-- TOTAL REVENUE
+    
 SELECT 
     COUNT(oh.order_id) AS total_orders, 
     SUM(oh.grand_total) AS total_revenue
@@ -133,14 +181,23 @@ AND oh.status_id = 'ORDER_COMPLETED'
 AND OH.ORDER_DATE BETWEEN "2024-01-01" AND "2024-12-31";
 
 Query Cost : 6500.76
+---------------------------------------------------------------------------------------------------------------------------------
     
-10. Canceled Orders (Last Month)
+-- 11 Canceled Orders (Last Month)
+-- Business Problem:
+-- The merchandising team needs to know how many orders were canceled in the previous month and their reasons.
+
+-- Fields to Retrieve:
+
+-- TOTAL ORDERS
+-- CANCELATION REASON  
+    
 SELECT 
     COUNT(oh.order_id) AS total_orders,
     os.change_reason AS cancelation_reason
 FROM Order_Header oh 
 JOIN order_status os USING(order_id)
 WHERE os.status_id = 'ORDER_CANCELLED'
-AND oh.order_date BETWEEN '2024-12-01' AND '2024-12-31'
+AND	oh.order_date >'2024-12-01' AND	oh.order_date <'2024-12-31' 
 GROUP BY os.change_reason;
-Query Cost : 28948.63
+Query Cost : 22948.63
