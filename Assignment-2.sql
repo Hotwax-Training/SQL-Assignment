@@ -31,7 +31,7 @@ JOIN order_contact_mech ocm ON ocm.order_id = oh.order_id
 JOIN postal_address pa ON pa.contact_mech_id = ocm.contact_mech_id
 JOIN party_contact_mech pcm ON pcm.contact_mech_id = pa.contact_mech_id
 JOIN person per ON per.party_id = pcm.party_id
-WHERE oh.order_date BETWEEN '2023-10-01' AND '2023-10-31' 
+WHERE oh.ORDER_DATE>='2023-10-01' AND oh.ORDER_DATE<'2024-01-01';
 AND ocm.contact_mech_purpose_type_id = 'SHIPPING_LOCATION'
 AND oh.status_id = 'ORDER_COMPLETED';
 
@@ -248,7 +248,5 @@ SELECT
     SUM(oh.grand_total) AS total_revenue,
     DATE_FORMAT(oh.order_date, '%Y-%m') AS reporting_period -- Grouping by month
 FROM order_header oh
-JOIN order_item oi 
-    ON oi.order_id = oh.order_id
 GROUP BY oh.sales_channel_enum_id, reporting_period
 ORDER BY reporting_period DESC, total_orders DESC;
