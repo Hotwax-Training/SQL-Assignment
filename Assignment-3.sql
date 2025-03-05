@@ -34,6 +34,8 @@ join order_status os on os.ORDER_ID=oi.ORDER_ID AND oi.order_item_seq_id = os.or
 join product p on p.product_id=oi.product_id product p ON oi.product_id = p.product_id 
 AND p.PRODUCT_TYPE_ID not in('DIGITAL_GOOD','DONATION','INSTALLATION_SERVICE','SERVICE');
 
+Query cost : 131859.54
+
 ---------------------------------------------------------------------------------------------------------------------------------
 
 -- 2 Completed Return Items
@@ -69,6 +71,7 @@ join order_header oh on ri.ORDER_ID=oh.order_id
 join order_status os on oh.order_id=os.order_id
 where ri.status_id="RETURN_COMPLETED" AND rh.status_id="RETURN_COMPLETED";
 
+Query Cost : 7225.4
 ---------------------------------------------------------------------------------------------------------------------------------
 
 -- 3 Single-Return Orders (Last Month)
@@ -89,6 +92,8 @@ join return_item ri on ri.return_id=rh.return_id
 where return_date between "2024-12-01" AND "2024-12-31"
 GROUP BY ri.order_id,ri.RETURN_ID,rh.FROM_PARTY_ID
 HAVING COUNT(rh.return_id) = 1;
+
+Query Cost : 1380.18
 
 --------------------------------------------------------------------------------------------------------------------------------------
     
@@ -111,6 +116,8 @@ select
 from return_item ri 
 left join return_adjustment ra on ri.return_id=ra.return_id
 where RETURN_ADJUSTMENT_TYPE_ID="APPEASEMENT" ;
+
+Query Cost : 384.95
 ----------------------------------------------------------------------------------------------------------------------------------
 
 -- 5 Detailed Return Information
@@ -144,6 +151,7 @@ left join return_adjustment ra on ra.RETURN_ID=rh.RETURN_ID
 left join return_item ri on ra.ORDER_ID=ri.ORDER_ID 
 join order_header oh on oh.ORDER_ID=ri.order_id;
 
+Query Cost : 5861.09
 --------------------------------------------------------------------------------------------------------------------------------
 
 -- 6 Orders with Multiple Returns
@@ -172,6 +180,8 @@ WHERE ri.order_id IN (
     GROUP BY order_id
     HAVING COUNT(DISTINCT return_id) > 1
 );
+
+Query Cost : 1925.50
 --------------------------------------------------------------------------------------------------------------------------------------
 
 -- 7 Store with Most One-Day Shipped Orders (Last Month)
@@ -199,6 +209,7 @@ AND OH.order_date < DATE_FORMAT(NOW(), '%Y-%m-01') AND S.shipment_Method_Type_Id
 GROUP BY F.FACILITY_ID,F.FACILITY_NAME
 ORDER BY TOTAL_ONE_DAY_SHIP_ORDERS DESC LIMIT 1;
 
+Query Cost :6737.04
 ---------------------------------------------------------------------------------------------------------------------------------
 
 -- 8 List of Warehouse Pickers
@@ -224,6 +235,8 @@ JOIN party_role pr ON p.party_id = pr.party_id
 JOIN person per on per.party_id=p.party_id
 JOIN facility f on f.OWNER_PARTY_ID=p.PARTY_ID
 WHERE pr.role_type_id = 'WAREHOUSE_PICKER' AND f.facility_type_id="WAREHOUSE";
+
+Query Cost : 51.43
 
 --------------------------------------------------------------------------------------------------------------------------------
 
@@ -271,6 +284,8 @@ join facility f on f.FACILITY_ID=pf.FACILITY_ID
 join inventory_item i on i.product_id=pf.product_id
 WHERE f.facility_type_id = 'VIRTUAL_FACILITY';
 
+Query Cost : 250798
+
 ------------------------------------------------------------------------------------------------------------------------------------
 -- 12 Orders Without Picklist
 -- Business Problem:
@@ -293,3 +308,5 @@ SELECT
 FROM Order_Header oh
 LEFT JOIN PickList_Item pi ON oh.order_id = pi.order_id
 WHERE pi.order_id IS NULL;
+
+Query Cost : 45622.3
