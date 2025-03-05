@@ -161,7 +161,7 @@ JOIN inventory_item_detail invd
     ON inv.inventory_item_id = invd.inventory_item_id
 WHERE invd.reason_enum_id IN ('VAR_LOST', 'VAR_DAMAGED');
 
-Query Cost :
+Query Cost :740168.2
 ---------------------------------------------------------------------------------------------------------------------------------
     
 -- 8.3 Retrieve the Current Facility (Physical or Virtual) of Open Orders
@@ -185,6 +185,8 @@ SELECT
 FROM facility f
 JOIN order_header oh ON f.facility_id = oh.origin_facility_id
 WHERE oh.status_id IN ('ORDER_APPROVED', 'ORDER_CREATED', 'ORDER_HOLD');
+
+Query Cost : 23724.2
 -----------------------------------------------------------------------------------------------------------------------------------
 
 -- 8.4 Items Where QOH and ATP Differ
@@ -250,3 +252,5 @@ SELECT
 FROM order_header oh
 GROUP BY oh.sales_channel_enum_id, reporting_period
 ORDER BY reporting_period DESC, total_orders DESC;
+
+Query Cost : 8450.55
