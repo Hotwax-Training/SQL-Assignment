@@ -69,7 +69,7 @@ from return_header rh
 join return_item ri on rh.return_id=ri.return_id
 join order_header oh on ri.ORDER_ID=oh.order_id
 join order_status os on oh.order_id=os.order_id
-where ri.status_id="RETURN_COMPLETED" AND rh.status_id="RETURN_COMPLETED";
+where ri.status_id="RETURN_COMPLETED";
 
 Query Cost : 7225.4
 ---------------------------------------------------------------------------------------------------------------------------------
