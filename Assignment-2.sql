@@ -100,7 +100,8 @@ JOIN order_item oi ON p.product_id = oi.product_id
 JOIN order_header oh ON oh.order_id = oi.order_id
 JOIN order_contact_mech ocm ON ocm.order_id = oh.order_id
 JOIN postal_address pa ON pa.contact_mech_id = ocm.contact_mech_id
-WHERE pa.state_province_geo_id = 'NY' 
+WHERE ocm.contact_mech_purpose_type_id = 'SHIPPING_LOCATION'
+AND pa.state_province_geo_id = 'NY' 
 AND pa.city = 'New York' 
 AND oh.status_id = 'ORDER_COMPLETED' 
 GROUP BY p.product_id;
