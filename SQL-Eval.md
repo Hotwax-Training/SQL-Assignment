@@ -59,13 +59,18 @@ This query retrieves **new orders** along with their **payment method details**.
 
 ```sql
 SELECT 
-      oh.ORDER_ID,
-      oh.GRAND_TOTAL AS TOTAL_AMOUNT,
-      oh.external_id AS Shopify_Order_ID,
-      opp.payment_method_type_id AS PAYMENT_METHOD 
+    oh.ORDER_ID,
+    oh.GRAND_TOTAL AS TOTAL_AMOUNT,
+    oh.EXTERNAL_ID AS SHOPIFY_ORDER_ID,
+    opp.PAYMENT_METHOD_TYPE_ID AS PAYMENT_METHOD 
 FROM order_header oh
-JOIN order_payment_preference opp USING (order_id)
+JOIN order_payment_preference opp 
+    ON oh.order_id = opp.order_id
+WHERE 
+    oh.status_id = 'ORDER_CREATED' AND
+    oh.order_type_id = 'SALES_ORDER' 
 ORDER BY oh.order_date DESC;
+
 ```
 
 ## Explanation:
@@ -80,7 +85,7 @@ ORDER BY oh.order_date DESC;
    - `ORDER BY oh.order_date DESC` ensures the most recent orders appear first.
 
  ## Query Cost: 
- - **Estimated Query Cost:** 55,516.37  
+ - **Estimated Query Cost:** 4534.78  
 
 #  3 Orders from New York
 
