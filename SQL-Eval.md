@@ -28,14 +28,14 @@ AND ID_VALUE IS NULL OR ID_VALUE = '';
 ## Explanation
 This query identifies products **missing a NetSuite ID** by:
 
-1️⃣ **Joining `product` and `good_identification`**  
+1️ **Joining `product` and `good_identification`**  
    - The `good_identification` table stores external identifiers like ERP IDs (NetSuite), SKUs, and UPCs.
    - Using `USING (product_id)`, we ensure we only fetch products with external ID entries.
 
-2️⃣ **Filtering by `GOOD_IDENTIFICATION_TYPE_ID = 'ERP_ID'`**  
+2️ **Filtering by `GOOD_IDENTIFICATION_TYPE_ID = 'ERP_ID'`**  
    - Setting `GOOD_IDENTIFICATION_TYPE_ID = 'ERP_ID'` ensures we only check NetSuite-related IDs.
 
-3️⃣ **Checking `ID_VALUE IS NULL OR ID_VALUE = ''`**  
+3️ **Checking `ID_VALUE IS NULL OR ID_VALUE = ''`**  
    - Filters products that do not have a NetSuite ID assigned yet.
 
 ##  Query Cost
@@ -69,14 +69,14 @@ ORDER BY oh.order_date DESC;
 ```
 
 ## Explanation:
-1️⃣ **Retrieve New Orders**:
+1️ **Retrieve New Orders**:
    - Selecting orders from the `order_header` table.
    - Fetching the `ORDER_ID`, `GRAND_TOTAL`, and `external_id`.
 
-2️⃣ **Join with Payment Preferences**:
+2️ **Join with Payment Preferences**:
    - `JOIN order_payment_preference USING (order_id)` ensures we get the payment method used for each order.
 
-3️⃣ **Sorting by Latest Orders**:
+3️ **Sorting by Latest Orders**:
    - `ORDER BY oh.order_date DESC` ensures the most recent orders appear first.
 
  ## Query Cost: 
@@ -130,19 +130,19 @@ AND pa.city = 'New York';
 ```
 
 ## Explanation:
-1️⃣ **Retrieve Completed Orders**:
+1️ **Retrieve Completed Orders**:
    - Selecting orders from `order_header` where `status_id = 'ORDER_COMPLETED'`.
 
-2️⃣ **Joining with Order Contact Mechanisms**:
+2️ **Joining with Order Contact Mechanisms**:
    - `JOIN order_contact_mech` ensures we get the **shipping address** associated with the order.
 
-3️⃣ **Fetching Postal Address Details**:
+3️ **Fetching Postal Address Details**:
    - `JOIN postal_address` provides **street address, city, state, and postal code**.
 
-4️⃣ **Linking to Customer Details**:
+4️ **Linking to Customer Details**:
    - `JOIN party_contact_mech` and `JOIN person` retrieve **customer name**.
 
-5️⃣ **Filtering for New York Orders**:
+5️ **Filtering for New York Orders**:
    - `pa.state_province_geo_id = 'NY'` ensures only **New York** orders.
    - `pa.city = 'New York'` ensures the specific **city** is targeted.
 
@@ -190,6 +190,7 @@ WHERE ri.status_id = 'RETURN_COMPLETED';
 This query efficiently retrieves completed return items:
 
 1 **Joining `return_header` and `return_item`**: Links return transactions with item-level details.
+
 2 **Joining `order_header`**: Fetches order-specific details like store ID, order name, and entry date.
 
 ## Query Cost 
@@ -234,14 +235,14 @@ WHERE ri.order_id IN (
 
 ## Query Explanation
 
-1️⃣ **Identifies orders with multiple returns**:
+1️ **Identifies orders with multiple returns**:
    - The subquery groups return items by `order_id`.
    - It filters only those orders where the count of distinct `return_id` values is greater than 1.
 
-2️⃣ **Joins `return_header` and `return_item`**:
+2️ **Joins `return_header` and `return_item`**:
    - The `return_item` table links individual return items to orders.
-   - 
-3️⃣ **Filters results based on the identified multiple-return orders**:
+      
+3️ **Filters results based on the identified multiple-return orders**:
    - The `WHERE` clause ensures that only orders with multiple return transactions are included.
 
 ## Query Cost
