@@ -224,14 +224,13 @@ WHERE inv.quantity_on_hand_total <> inv.available_to_promise_total;
 -- STATUS_CHANGE_DATETIME
 -- CHANGED_BY
     
-SELECT 
-    oi.order_id,
-    oi.order_item_seq_id,
-    oi.status_id AS current_status_id,
-    os.status_datetime AS status_change_datetime,
-    os.status_user_login AS changed_by
-FROM order_item oi 
-JOIN order_status os ON oi.order_id = os.order_id;
+SELECT
+	os.order_id,
+    os.order_item_seq_id,
+    os.status_id as Current_status_id,
+    os.status_datetime as Status_change_datetime,
+    os.status_user_login as Changed_by
+FROM order_status os WHERE os.order_item_seq_id is not null;
 ------------------------------------------------------------------------------------------------------------------------------------
 
 -- 8.6 Total Orders by Sales Channel
