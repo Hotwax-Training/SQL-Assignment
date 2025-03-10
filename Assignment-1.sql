@@ -69,7 +69,7 @@ SELECT
 FROM product 
 JOIN good_identification USING (product_id) 
 WHERE GOOD_IDENTIFICATION_TYPE_ID = 'ERP_ID' 
-AND ID_VALUE IS NULL;
+AND ID_VALUE IS NULL or ID_VALUE="";
 
 Query Cost : 2.19
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------    
@@ -106,13 +106,17 @@ Query Cost : 252022.31
 -- PAYMENT_METHOD
 -- Shopify Order ID (if applicable) //External_id
 SELECT 
-      ORDER_ID,
-      GRAND_TOTAL as TOTAL_AMOUNT,
-      external_id as Shopify_Order_ID,
-      payment_method_type_id as payment_method 
-FROM order_header 
-JOIN order_payment_preference using (order_id)
-order by order_date desc;
+    oh.ORDER_ID,
+    oh.GRAND_TOTAL AS TOTAL_AMOUNT,
+    oh.EXTERNAL_ID AS SHOPIFY_ORDER_ID,
+    opp.PAYMENT_METHOD_TYPE_ID AS PAYMENT_METHOD 
+FROM order_header oh
+JOIN order_payment_preference opp 
+    ON oh.order_id = opp.order_id
+WHERE 
+    oh.status_id = 'ORDER_CREATED' AND
+    oh.order_type_id = 'SALES_ORDER' 
+ORDER BY oh.order_date DESC;
 
 Query Cost : 60516.37
 ----------------------------------------------------------------------------------------------------------------------------------
@@ -136,7 +140,7 @@ from order_header oh
 join order_payment_preference opp on oh.order_id=opp.order_id 
 join order_shipment os on os.ORDER_ID=oh.ORDER_ID
 join shipment s on s.SHIPMENT_ID=os.SHIPMENT_ID 
-where s.status_id is null AND opp.status_id='PAYMENT_SETTLED' ;
+where opp.status_id='PAYMENT_SETTLED' AND s.status_id != 'SHIPMENT_SHIPPED' OR s.status_id is null;
 #shippment id is nulll
 Query Cost : 3.58
 ---------------------------------------------------------------------------------------------------------------------------------
